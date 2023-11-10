@@ -1,0 +1,22 @@
+/*开场动画*/
+.kaichang {
+    animation: show 1s linear 1.5s forwards;
+    margin: 70px 30px 70px 30px;
+}
+
+@keyframes show {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+/*卡牌展示*/
+.hao {
+    display: inline-block;
+    width: 1300px;
+    margin-left: 200px;
+}

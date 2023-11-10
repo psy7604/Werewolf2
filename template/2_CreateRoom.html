@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>角色设置</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f0f0f0;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+            }
+
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+
+            .role-container {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+
+            .role-card {
+                text-align: center;
+                background-color: #fff;
+                border: 1px solid #ccc;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                transition: transform 0.2s;
+                cursor: pointer;
+                position: relative;
+            }
+
+            .role-card:hover {
+                transform: scale(1.05);
+            }
+
+            .role-card:before {
+                content: attr(data-title);
+                position: absolute;
+                top: -25px;
+                /* 控制上方的距离 */
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #ccc;
+                /* 设置文字框背景颜色为灰色 */
+                color: #fff;
+                padding: 5px 10px;
+                border-radius: 5px;
+                display: none;
+                font-size: 14px;
+                /* 调整字体大小 */
+            }
+
+            .role-card:hover:before {
+                display: block;
+            }
+
+            .role-name {
+                font-weight: bold;
+                margin-top: 10px;
+                font-size: 14px;
+                /* 调整字体大小 */
+            }
+
+            .role-count {
+                margin-top: 10px;
+                font-size: 14px;
+                /* 调整字体大小 */
+            }
+
+            .nickname-input {
+                margin-top: 20px;
+                width: 300px;
+                padding: 10px;
+                font-size: 16px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+
+            .create-button {
+                margin-top: 20px;
+                padding: 10px 20px;
+                background-color: #0074d9;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+            .create-button:hover {
+                background-color: #0056b3;
+            }
+
+            /* 弹出窗口样式 */
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                align-items: center;
+                justify-content: center;
+            }
+
+            .modal-content {
+                background-color: #fff;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 20px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>角色设置</h1>
+        <form method="post" action="/Game">
+        <div class="role-container">
+            <div class="role-card" data-title="预言家">
+                <image src="/static/img/Yuyanjia.jpeg" alt="预言家" width="150" height="200"></image>
+                <div class="role-count">
+                    <input type="number" min="0" max="1" value="0" name="yu_num">
+                </div>
+            </div>
+            <div class="role-card" data-title="女巫">
+                <image src="/static/img/Nvwu.webp" alt="女巫" width="150" height="200"></image>
+                <div class="role-count">
+                    <input type="number" min="0" max="1" value="0" name="nv_num">
+                </div>
+            </div>
+            <div class="role-card" data-title="猎人">
+                <image src="/static/img/Lieren2.jpeg" alt="猎人" width="150" height="200"></image>
+                <div class="role-count">
+                    <input type="number" min="0" max="1" value="0" name="lie_num">
+                </div>
+            </div>
+            <div class="role-card" data-title="守卫">
+                <image src="/static/img/Shouwei.png" alt="守卫" width="150" height="200"></image>
+                <div class="role-count">
+                    <input type="number" min="0" max="1" value="0" name="shou_num">
+                </div>
+            </div>
+            <div class="role-card" data-title="狼人">
+                <image src="/static/img/Langren.webp" alt="狼人" width="150" height="200"></image>
+                <div class="role-count">
+                    <input type="number" min="0" max="10" value="0" name="lang_num">
+                </div>
+            </div>
+            <div class="role-card" data-title="平民">
+                <image src="/static/img/Pingmin.jpeg" alt="平民" width="150" height="200"></image>
+                <div class="role-count">
+                    <input type="number" min="0" max="10" value="0" name="ping_num">
+                </div>
+            </div>
+        </div>
+        <input type="text" class="nickname-input" placeholder="你的昵称" name="player_name">
+<!--        <a href="Game" ><button class="create-button">创建</button></a>-->
+<!--        <a href="ChooseImage" class="btn">创建</a>-->
+        <input type="submit" value="创建" class="create-button" ><a href="Game" ></a>
+        </form>
+
+        <!-- 昵称未填写时的弹出窗口 -->
+        <div class="modal" id="modal">
+            <div class="modal-content">
+                请填写昵称！
+            </div>
+        </div>
+
+        <script>
+            // 获取昵称输入框和创建按钮
+            const nicknameInput = document.getElementById("nickname");
+            const createButton = document.getElementById("create-button");
+
+            // 获取弹出窗口
+            const modal = document.getElementById("modal");
+
+            // 当点击创建按钮时触发验证逻辑
+            createButton.addEventListener("click", () => {
+                // 获取昵称输入框的值
+                const nickname = nicknameInput.value.trim();
+
+                // 如果昵称为空，显示弹出窗口
+                if (nickname === "") {
+                    modal.style.display = "flex";
+                } else {
+                    // 如果昵称不为空，继续执行其他操作，例如提交表单
+                    // 在这里添加您的逻辑
+                }
+            });
+        </script>
+
+        <script src="/static/js/main.js"></script>
+    </body>
+
+</html>
