@@ -141,7 +141,7 @@
 
         <h1>狼人杀游戏</h1>
         <h3 style="color: burlywood;">房间号：{{ room_num }} </h3>
-<!--        <p style="color: red;">{{ player_list }}</p>-->
+        <p style="color: red;">{{ player_list }}</p>
 <!--        <div id="players">-->
 <!--            <div class="player"></div>-->
 <!--            <div class="player"></div>-->
@@ -209,29 +209,96 @@
                 document.getElementById('role-modal').style.display = 'none';
             }
 
-            // var seats = document.querySelectorAll('.seat');
-            // seats.forEach(function (seat){
-            //     var role = seat.getAttribute('data-role');
-            //     var player = seat.getAttribute('data-player');
-            //     var personId = seat.getAttribute('data-person-id');
-            //     console.log('座位角色：' + role + ', Player: ' + player + ', Person ID: ' + personId);
+            var playerListString = "{{ player_list_json }}";
+            var playerList;
 
-            var playerList = "{{ player_list }}";
+            // 创建一个 div 元素，利用其 innerHTML 来解码 HTML 实体
+            var tempDiv = document.createElement("div");
+            tempDiv.innerHTML = playerListString;
+            var decodedPlayerListString = tempDiv.textContent || tempDiv.innerText;
+
+            try {
+                // 尝试解析 JSON 字符串
+                playerList = JSON.parse(decodedPlayerListString);
+            } catch (error) {
+                // 处理解析错误
+                console.error("Error parsing playerList JSON:", error);
+            }
+
+            console.log(playerList);
+
             var seatsContainer = document.getElementById('seats-container');
 
-            playerList.forEach(function(seat) {
-                var seatDiv = document.createElement('div');
-                seatDiv.className = 'seat clearfix';  // Add clearfix class
-                seatDiv.setAttribute('data-role', seat['role']);
-                seatDiv.setAttribute('data-player', seat['player']);
-                seatDiv.setAttribute('data-person-id', seat['person_id']);
+            if (Array.isArray(playerList)) {
+                playerList.forEach(function(seat) {
+                    var seatDiv = document.createElement('div');
+                    seatDiv.className = 'seat clearfix';  // Add clearfix class
+                    seatDiv.setAttribute('data-role', seat['role']);
+                    seatDiv.setAttribute('data-player', seat['player']);
+                    seatDiv.setAttribute('data-person-id', seat['person_id']);
 
-                var playerParagraph = document.createElement('p');
-                playerParagraph.textContent = 'Player: ' + seat['player'];
-                seatDiv.appendChild(playerParagraph);
+                    // var playerParagraph = document.createElement('p');
+                    // playerParagraph.textContent = 'Player: ' + seat['player'];
+                    // seatDiv.appendChild(playerParagraph);
+                    //
+                    // seatsContainer.appendChild(seatDiv);
+                });
+            } else {
+                console.log("playerList is not an Array");
+            }
 
-                seatsContainer.appendChild(seatDiv);
-            });
+            // 创建WebSocket连接
+            var socket = new WebSocket("ws://" + window.location.host + "/websocket/" + "{{ room_num }}");
+            console.log("创建websocket连接成功！")
+
+            // 监听 WebSocket 事件
+            socket.onmessage = function (event) {
+                var data = JSON.parse(event.data);
+                console.log(data)
+                if (data.action === 'update') {
+                    console.log(data.room_info);
+                    updatePage(data.room_info);
+                }
+            };
+
+            function updatePage(roomInfo){
+                 // 根据 roomInfo 更新页面内容，例如更新玩家列表等
+                console.log("Received update: ", roomInfo);
+                // 实现页面更新逻辑
+                var seats = document.querySelectorAll('.seat');
+                var playerListString = "{{ player_list_json }}";
+                var playerList;
+
+                // 创建一个 div 元素，利用其 innerHTML 来解码 HTML 实体
+                var tempDiv = document.createElement("div");
+                tempDiv.innerHTML = playerListString;
+                var decodedPlayerListString = tempDiv.textContent || tempDiv.innerText;
+
+                try {
+                    // 尝试解析 JSON 字符串
+                    playerList = JSON.parse(decodedPlayerListString);
+                } catch (error) {
+                    // 处理解析错误
+                    console.error("Error parsing playerList JSON:", error);
+                }
+
+                console.log(playerList);
+
+                if (Array.isArray(playerList)) {
+                    playerList.forEach(function (playerInfo, index) {
+                        var seat = seats[index];
+                        if (seat) {
+                            seat.setAttribute('data-role', playerInfo.role);
+                            seat.setAttribute('data-player', playerInfo.player);
+                            seat.setAttribute('data-person-id', playerInfo.person_id);
+                            var playerParagraph = seat.querySelector('p');
+                            playerParagraph.textContent = playerInfo.player;
+                        }
+                    });
+                } else {
+                    console.log("websocket里的playerList is not an Array");
+                }
+            }
 
 
         </script>

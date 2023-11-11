@@ -1,3 +1,4 @@
+import json
 import os
 import time
 
@@ -7,6 +8,9 @@ from tornado import web, ioloop, httpserver
 import os
 import time
 import random
+
+from tornado.websocket import WebSocketHandler
+
 
 # 用户信息
 USER_INFO = {}
@@ -19,6 +23,54 @@ USING_ROOMS = {}
 
 # 游戏配置
 # PLAYER_ROLE = []       # 默认 PLAYER_SETTING[0] 预言家个数  PLAYER_SETTING[1] 女巫个数  PLAYER_SETTING[2] 猎人个数   PLAYER_SETTING[3] 守卫个数   PLAYER_SETTING[4] 狼人个数  PLAYER_SETTING[5] 平民个数
+
+class WebSocketGameHandler(WebSocketHandler):
+
+    instances = {}  # 用于存储实例的类变量
+    def open(self, room_num):
+        # 在 WebSocket 连接建立时调用
+        self.room_num = room_num
+        self.room_info = USING_ROOMS.get(room_num, {})
+
+        # if not self.room_info:
+        #     self.close()  # 如果房间不存在，关闭连接
+        #     return
+
+        self.room_info.setdefault('websockets', []).append(self)
+
+        WebSocketGameHandler.instances[self.room_num] = self
+
+        self.send_update()
+
+        print(f"WebSocket connection opened for room {room_num}")
+
+    def on_message(self, message):
+        # 当接收到 WebSocket 消息时调用
+        pass
+
+    def on_close(self):
+        pass
+        # 当 WebSocket 连接关闭时调用
+        # 连接关闭时从类变量中删除实例
+        if self.room_num in WebSocketGameHandler.instances:
+            del WebSocketGameHandler.instances[self.room_num]
+        else:
+            print("WebSocket connection was already closed.")
+
+    def send_update(self):
+        # 向同一房间内的所有连接客户端发送更新
+        if self.room_info:
+            if self.ws_connection and not self.ws_connection.close:
+                update_message = {'action': 'update', 'room_info': self.room_info}
+                for ws_instance in self.room_info.get('websockets', []):
+                    if ws_instance != self:
+                        ws_instance.write_message(update_message)
+
+                print(f"Sent update to room {self.room_num}: {update_message}")
+
+                self.write_message(update_message)
+            else:
+                print("WebSocket connection is closed. Unable to send message.")
 
 class MainPageHandler(web.RequestHandler):
     def get(self, *args, **kwargs):
@@ -66,6 +118,7 @@ class CreateGameHandler(web.RequestHandler):
             # room_num, room_info = ROOMS.popitem()
             room_num = random.choice(list(ROOMS.keys()))
             room_info = ROOMS.pop(room_num)
+
         except Exception as e:
             print(e)
             self.render('error.html', info={
@@ -115,6 +168,9 @@ class CreateGameHandler(web.RequestHandler):
         room_info['player_list'] = []
         room_info['total_num'] = total_num
         room_info['cur_num'] = 1
+        ws_instance = WebSocketGameHandler(application, self.request)
+        ws_instance.open(room_num)
+        room_info['websockets'] = [ws_instance]
 
         # 整个字典
         PLAYER_SEETING = {
@@ -150,10 +206,19 @@ class CreateGameHandler(web.RequestHandler):
         # 更新时间
         USER_INFO[person_id]['time'] = room_info['time']
 
+        # 通知所有连接的客户端关于房间更新的信息
+        for ws_instance in USING_ROOMS[room_num].get('websockets', []):
+            ws_instance.send_update()
+
+        # 处理成json，传给前端
+        player_list_json = json.dumps(room_info['player_list'])
+
         self.render('4_Game.html', room_num=room_num,
                     player_list=room_info['player_list'],
                     seetings=player_seeting,
-                    role=USER_INFO[person_id]['role'])
+                    role=USER_INFO[person_id]['role'],
+                    room_info=room_info,
+                    player_list_json=player_list_json)
 
     get = post
 
@@ -216,10 +281,17 @@ class JoinGameHandler(web.RequestHandler):
             })
             return
 
+        # 通知所有连接的客户端关于房间更新的信息
+        for ws_instance in USING_ROOMS[room_num].get('websockets', []):
+            ws_instance.send_update()
+
+        # 处理成json，传给前端
+        player_list_json = json.dumps(room_info['player_list'])
 
         self.render('4_Game.html', room_num=room_num,
                     player_list=room_info['player_list'],
-                    role=USER_INFO[person_id]['role'])
+                    role=USER_INFO[person_id]['role'],
+                    player_list_json=player_list_json)
 
     get = post
 
@@ -237,6 +309,7 @@ application = web.Application([
     # (r"/ChooseImage", )
     (r"/Game", CreateGameHandler),
     (r"/JoinGame", JoinGameHandler),
+    (r"/websocket/([^/]+)", WebSocketGameHandler),
 ], **settings)
 
 
