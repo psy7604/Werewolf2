@@ -14,3 +14,7 @@
 ![image](https://github.com/psy7604/Werewolf2/blob/final/pic/rolefinish.jpg)
 开启虚拟形象，（效果如下：根据人眨眼的动作也眨眼了）
 ![image](https://github.com/psy7604/Werewolf2/blob/final/pic/main.jpg)
+眺望
+![image](https://github.com/psy7604/Werewolf2/blob/final/pic/look.jpg)
+张嘴睡觉
+![image](https://github.com/psy7604/Werewolf2/blob/final/pic/mouth.jpg)
