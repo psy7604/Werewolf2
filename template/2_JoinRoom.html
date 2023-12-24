@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>狼人杀</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f0f0f0;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+
+            .container {
+                text-align: center;
+                background-color: transparent;
+                padding: 20px;
+            }
+
+            .logo {
+                margin-bottom: 20px;
+            }
+
+            .input-container {
+                margin-bottom: 20px;
+                text-align: left;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .input-container label {
+                font-weight: bold;
+                margin-right: 10px;
+                width: 100px;
+                /* 固定标签宽度，可以根据需要调整 */
+            }
+
+            .input-container input {
+                flex: 1;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                font-size: 16px;
+            }
+
+            .btn {
+                display: inline-block;
+                margin: 10px;
+                padding: 10px 20px;
+                background-color: #0074d9;
+                color: #fff;
+                text-decoration: none;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+            .btn:hover {
+                background-color: #0056b3;
+            }
+        </style>
+
+
+    </head>
+
+    <body>
+        <div class="container">
+            <img src="/static/img/LangrenLogo.png" alt="Logo" class="logo">
+            <form method="post" action="/JoinGame">
+            <div class="input-container">
+                <label for="roomNumber">房间号：</label>
+                <input type="text" id="roomNumber" placeholder="请输入房间号" name="room_number" required>
+            </div>
+            <div class="input-container">
+                <label for="nickname">昵称：</label>
+                <input type="text" id="nickname" placeholder="请输入昵称" name="player_name" required>
+            </div>
+<!--            <router-link to="/page4"><button class="btn" onclick="joinRoom()">加入</button></router-link>-->
+                <input type="submit" value="加入" class="btn" ><a href="JoinGame" ></a>
+            </form>
+        </div>
+
+        <script>
+            function joinRoom() {
+                const roomNumber = document.getElementById("roomNumber").value;
+                const nickname = document.getElementById("nickname").value;
+
+                if (roomNumber.trim() === "" || nickname.trim() === "") {
+                    alert("请填写完整！");
+                } else {
+                    // 在这里添加处理加入房间的逻辑
+                    // 可以将房间号和昵称发送到后端进行处理
+                    // 然后重定向到游戏房间或执行其他操作
+                }
+            }
+        </script>
+
+        <script src="js/main.js"></script>
+    </body>
+
+</html>

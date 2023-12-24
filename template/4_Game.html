@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>狼人杀游戏</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+                background-color: #f0f0f0;
+                padding: 20px;
+                background-image: url('/static/img/Guochangtu4.jpg');
+                background-position: center center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-size: cover;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            #players {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .seat {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background-color: #0074d9;
+                margin: 0 10px 10px 0;
+                float: left;
+            }
+
+            .clearfix:after{
+                content: "";
+                display: table;
+                clear: both;
+            }
+
+            #microphone {
+                font-size: 36px;
+                margin: 10px;
+                cursor: pointer;
+            }
+
+            .ready-button {
+                padding: 10px 20px;
+                background-color: #0074d9;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+            .ready-button:hover {
+                background-color: #0056b3;
+            }
+
+            /* 角色分配弹窗样式 */
+            #role-modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 999;
+            }
+
+            .role-modal-content {
+                background-color: #fff;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 20px;
+                width: 300px;
+                /* 调整弹窗宽度 */
+            }
+
+            #random-role-button {
+                margin: 10px 0;
+                padding: 10px 20px;
+                background-color: #0074d9;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+            #random-role-button:hover {
+                background-color: #0056b3;
+            }
+
+            #role-result {
+                font-size: 18px;
+                margin-top: 20px;
+            }
+
+            #close-button {
+                margin-top: 20px;
+                padding: 10px 20px;
+                background-color: #0074d9;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+            #close-button:hover {
+                background-color: #0056b3;
+            }
+
+            /* 角色标签样式 */
+            .role-label {
+                background-color: #0074d9;
+                color: #fff;
+                border-radius: 5px;
+                padding: 5px 10px;
+                margin-top: 10px;
+                display: inline-block;
+            }
+        </style>
+
+    </head>
+
+    <body>
+
+
+        <h1>狼人杀游戏</h1>
+        <h3 style="color: burlywood;">房间号：{{ room_num }} </h3>
+<!--        <p style="color: red;">{{ player_list }}</p>-->
+<!--        <div id="players">-->
+<!--            <div class="player"></div>-->
+<!--            <div class="player"></div>-->
+<!--            &lt;!&ndash; 其他玩家头像，可以根据需要添加更多 &ndash;&gt;-->
+<!--        </div>-->
+
+        <div id="seats-container">
+            {% for seat in player_list %}
+                <div class="seat clearfix" data-role="{{ seat['role'] }}" data-player="{{ seat['player'] }}" data-person-id="{{ seat['person_id'] }}">
+                    <p>{{ seat['player'] }}</p>
+                </div>
+            {% end %}
+        </div>
+
+        <div id="microphone" onclick="toggleMicrophone()">🎤</div>
+<!--        <input type="submit" value="加入" class="btn" ><a href="JoinGame" ></a>-->
+        <button class="ready-button" onclick="showRoleModal()">准备</button>
+        <div>
+            <p></p>
+        <button class="ready-button" onclick="startProcess()">开启虚拟形象</button>
+<!--        <button class="ready-button" onclick="stopProcess()">关闭虚拟形象</button>-->
+        </div>
+        <div id="result"></div>
+
+        <!-- 角色分配弹窗 -->
+        <div id="role-modal">
+            <div class="role-modal-content">
+                <h2>角色分配</h2>
+                <button id="random-role-button" onclick="assignRandomRole()">随机角色</button>
+                <div id="role-result"></div>
+                <button id="close-button" onclick="closeRoleModal()">确定</button>
+            </div>
+        </div>
+
+        <script>
+            let microphoneOn = false;
+
+            function toggleMicrophone() {
+                const microphone = document.getElementById('microphone');
+                if (microphoneOn) {
+                    microphone.innerHTML = '🎤';
+                } else {
+                    microphone.innerHTML = '🔇';
+                }
+                microphoneOn = !microphoneOn;
+            }
+
+            function showRoleModal() {
+                const roleModal = document.getElementById('role-modal');
+                roleModal.style.display = 'flex';
+                setTimeout(() => {
+                    document.getElementById('random-role-button').style.display = 'block';
+                }, 5000); // 模拟5秒后显示随机角色按钮
+            }
+
+            function assignRandomRole() {
+                const roles = ['猎人', '女巫', '村民', '狼人', '预言家']; // 根据实际需要修改
+                // const randomRole = roles[Math.floor(Math.random() * roles.length)];
+                const randomRole = "{{ role }}"
+                document.getElementById('role-result').textContent = `你的角色是 "${randomRole}"`;
+                document.getElementById('random-role-button').style.display = 'none';
+                document.getElementById('close-button').style.display = 'block';
+
+                // 添加角色标签
+                const roleLabel = document.createElement('div');
+                roleLabel.className = 'role-label';
+                roleLabel.textContent = `角色: ${randomRole}`;
+                document.body.appendChild(roleLabel);
+            }
+
+            function closeRoleModal() {
+                document.getElementById('role-modal').style.display = 'none';
+            }
+
+            // var seats = document.querySelectorAll('.seat');
+            // seats.forEach(function (seat){
+            //     var role = seat.getAttribute('data-role');
+            //     var player = seat.getAttribute('data-player');
+            //     var personId = seat.getAttribute('data-person-id');
+            //     console.log('座位角色：' + role + ', Player: ' + player + ', Person ID: ' + personId);
+
+            var playerList = "{{ player_list }}";
+            var seatsContainer = document.getElementById('seats-container');
+
+            playerList.forEach(function(seat) {
+                var seatDiv = document.createElement('div');
+                seatDiv.className = 'seat clearfix';  // Add clearfix class
+                seatDiv.setAttribute('data-role', seat['role']);
+                seatDiv.setAttribute('data-player', seat['player']);
+                seatDiv.setAttribute('data-person-id', seat['person_id']);
+
+                var playerParagraph = document.createElement('p');
+                playerParagraph.textContent = 'Player: ' + seat['player'];
+                seatDiv.appendChild(playerParagraph);
+
+                seatsContainer.appendChild(seatDiv);
+            });
+
+
+        </script>
+
+<!--        <video id="webcam" width="640" height="480" autoplay></video>-->
+
+<!--        <script>-->
+<!--            var socket = new WebSocket("ws://127.0.0.1:8080");-->
+
+<!--            socket.onmessage = function (event) {-->
+<!--                var frameData = event.data;-->
+<!--                document.getElementById("webcam").src = "data:image/jpeg;base64," + frameData;-->
+<!--            };-->
+<!--        </script>-->
+
+        <script>
+            function startProcess() {
+                sendRequest("start");
+            }
+
+            function stopProcess() {
+                sendRequest("stop");
+            }
+
+            function sendRequest(action) {
+                var xhr = new XMLHttpRequest();
+                var url = "/Show";  // 根据你的路由设置
+                var params = "action=" + action;
+
+                xhr.open("POST", url, true);
+                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        document.getElementById("result").innerHTML = xhr.responseText;
+                    }
+                };
+
+                xhr.send(params);
+            }
+</script>
+
+
+        <script src="/static/js/main.js"></script>
+
+
+    </body>
+
+</html>
